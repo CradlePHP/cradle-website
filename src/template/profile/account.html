@@ -1,0 +1,53 @@
+<link href="/styles/profile.css" rel="stylesheet" type="text/css" />
+<div class="profile-layout container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="/">
+                    <i class="fas fa-home"></i> {{_ 'Home'}}
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                <i class="fas fa-cog"></i>
+                {{_ 'Account Settings'}}
+            </li>
+        </ol>
+    </nav>
+    <h1 class="mt-4">
+        <i class="fas fa-cog"></i>
+        &nbsp;
+        {{_ 'Account Settings'}}
+    </h1>
+    <hr />
+    <div class="row">
+        <div class="col-md-3">
+            {{#if profile_image}}
+                <img src="{{profile_image}}" width="100%" />
+            {{else}}
+                <img src="/images/default-avatar.png" width="100%" />
+            {{/if}}
+
+            {{> profile_menu}}
+        </div>
+        <div class="col-md-9">
+            {{#format 'field' 'auth' item}}
+                {{#each formats}}
+                    {{#notin 'auth_type' @key}}
+                        {{> profile_fieldset}}
+                    {{/notin}}
+                    {{#when @key '===' 'auth_password'}}
+                        <div class="form-group mt-2">
+                            <label class="control-label">{{_ 'Confirm'}}</label>
+                            <div class="form-password system-form-field" data-name="auth_password">
+                                <input autocomplete="confirm" class="form-control system-form-control" name="confirm" type="password" placeholder="Confirm password" />
+                            </div>
+                        </div>
+                    {{/when}}
+                {{/each}}
+            {{/format}}
+            <div class="form-group mt-2">
+                <button class="btn btn-primary">{{_ 'Submit'}}</button>
+            </div>
+        </div>
+    </div>
+</div>

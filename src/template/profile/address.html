@@ -1,0 +1,111 @@
+<link href="/styles/profile.css" rel="stylesheet" type="text/css" />
+<div class="profile-layout container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="/">
+                    <i class="fas fa-home"></i> {{_ 'Home'}}
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                <i class="fas fa-map-marker-alt"></i>
+                {{_ 'My Addresses'}}
+            </li>
+        </ol>
+    </nav>
+    <h1 class="mt-4">
+        <i class="fas fa-map-marker-alt"></i>
+        &nbsp;
+        {{_ 'My Addresses'}}
+    </h1>
+    <hr />
+    <div class="row">
+        <div class="col-md-3">
+            {{#if profile_image}}
+                <img src="{{profile_image}}" width="100%" />
+            {{else}}
+                <img src="/images/default-avatar.png" width="100%" />
+            {{/if}}
+
+            {{> profile_menu}}
+        </div>
+        <div class="col-md-9">
+            {{#if rows.length}}
+                <div class="clearfix mb-4 search-actions">
+                    <div class="float-right">
+                        <a class="btn btn-success" href="address/create?redirect_uri={{redirecturl}}">
+                            <i class="fas fa-plus"></i> {{_ 'Add Address'}}
+                        </a>
+                    </div>
+                </div>
+
+                <div class="table-overflow">
+                    <table class="table table-responsive-sm table-striped table-data">
+                        <thead>
+                            <th>{{_ 'Actions'}}</th>
+                            <th>{{_ 'Label'}}</th>
+                            <th>{{_ 'Contact'}}</th>
+                            <th>{{_ 'Address'}}</th>
+                        </thead>
+                        <tbody>
+                            {{#each rows}}
+                                <tr data-id="{{address_id}}">
+                                    <td class="table-actions">
+                                        <a
+                                            class="text-grey"
+                                            href="address/update/{{address_id}}?redirect_uri=/profile/address"
+                                            title="{{_ 'Edit Address'}}"
+                                        >
+                                            <i class="fa fa-edit"></i>
+                                        </a>
+
+                                        <a
+                                            class="text-danger remove"
+                                            data-do="confirm"
+                                            data-on="click"
+                                            data-message="{{_ 'Are you sure you want to remove address?'}}"
+                                            href="address/remove/{{address_id}}?redirect_uri=/profile/address"
+                                            title="{{_ 'Remove Address'}}"
+                                        >
+                                            <i class="fa fa-times"></i>
+                                        </a>
+                                    </td>
+                                    <td>{{address_label}}</td>
+                                    <td>{{address_contact_name}}</td>
+                                    <td>
+                                        {{address_street_1}}
+                                        {{#if address_street_2}}
+                                            <br />
+                                            {{address_street_2}}
+                                        {{/if}}
+                                        <br />
+                                        {{address_city}}
+                                        {{~#if address_state}}
+                                            , {{address_state}}
+                                        {{/if}}
+                                        <br />
+                                        {{address_country}}, {{address_postal_code}}
+                                    </td>
+                                </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+
+                <ul class="pagination">
+                    {{#pager total range}}
+                        <li class="page-item{{#if active}} active{{/if}}">
+                            <a class="page-link" href="?{{href}}">{{page}}</a>
+                        </li>
+                    {{/pager}}
+                </ul>
+            {{else}}
+                <!-- START: NO RESULTS -->
+                <div class="alert alert-info no-results">
+                    <center>{{_ 'No Results Found.'}}</center>
+                </div>
+                <!-- END: NO RESULTS -->
+            {{/if}}
+        </div>
+    </div>
+</div>

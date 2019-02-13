@@ -1,0 +1,41 @@
+<div class="box mt-4">
+    <div class="box-head box-purple">
+        <div class="box-title">
+            {{request 'session' 'me' 'profile_name'}}
+            {{request 'session' 'me' 'profile_last_name'}}
+        </div>
+    </div>
+    <div class="box-body box-padding">
+        <nav class="nav profile-menu flex-column">
+            <a class="nav-link{{#request 'path'}}
+                {{~#when string '===' '/profile/update'}} active{{/when~}}
+            {{/request}}" href="/profile/update">
+                <i class="fas fa-user"></i>
+                &nbsp;
+                {{_ 'My Profile'}}
+            </a>
+            <a class="nav-link{{#request 'path'}}
+                {{~#when string '===' '/profile/file'}} active{{/when~}}
+            {{/request}}" href="/profile/file">
+                <i class="fas fa-file-alt"></i>
+                &nbsp;
+                {{_ 'My Files'}}
+            </a>
+            <a class="nav-link{{#request 'path'}}
+                {{~#when string '===' '/profile/address'}} active{{/when~}}
+                {{~#when string '===' '/profile/address/create'}} active{{/when~}}
+            {{/request}}" href="/profile/address">
+                <i class="fas fa-map-marker-alt"></i>
+                &nbsp;
+                {{_ 'My Addresses'}}
+            </a>
+            <a class="nav-link{{#request 'path'}}
+                {{~#when string '===' '/profile/account'}} active{{/when~}}
+            {{/request}}" href="/profile/account">
+                <i class="fas fa-cog"></i>
+                &nbsp;
+                {{_ 'Account Settings'}}
+            </a>
+        </nav>
+    </div>
+</div>
