@@ -12,7 +12,7 @@ Common Schemas and front end for websites. Schemas included
 
 ## Install
 
-This package is experimental and is still in development. To try out this package you need to manually copy the schemas to your `/[project]/config/schema` folder, install each schema one by one and rund the SQL scripts in [`package/fixtures`](https://github.com/CradlePHP/cradle-website/tree/master/package/fixtures). 
+This package is experimental and is still in development. To try out this package you need to manually copy the schemas to your `/[project]/config/schema` folder, install each schema one by one and run the SQL scripts in [`package/fixtures`](https://github.com/CradlePHP/cradle-website/tree/master/package/fixtures). 
 
 ```
 composer require cradlephp/cradle-website
