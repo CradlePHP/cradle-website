@@ -1,11 +1,18 @@
 # Cradle Website Package
 
-Common Schemas and front end for websites.
+Common Schemas and front end for websites. Schemas included
+
+ - Layout
+   - Page - Create static or dynamic pages, trigger an event and customize the template in the admin. Pages are designed for simple request and response outputs and are designed to work in collaboration with code via events. Pages are also designed to easily set up SEO per page, build sitemaps, and RSS feeds.
+   - Block - Blocks are used to handle separate logic that needs to be outputted in pages. Like pages, blocks also can trigger events and can have a customized template defined in the admin. Usage `{{{block 'block-name'}}}`.
+ - Content
+   - Category - General category definition that can be used with other schemas
+   - File - General file repository definition that can be used with other schemas
+   - Post - An article post schema, with front end support used for a general blog
 
 ## Install
 
-If you already installed Cradle, you may not need to install this because it
-should be already included.
+This package is experimental and is still in development. To try out this package you need to manually copy the schemas to your `/[project]/config/schema` folder, install each schema one by one and rund the SQL scripts in [`package/fixtures`](https://github.com/CradlePHP/cradle-website/tree/master/package/fixtures). 
 
 ```
 composer require cradlephp/cradle-website
