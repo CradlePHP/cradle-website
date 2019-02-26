@@ -9,7 +9,7 @@ use Cradle\Storm\SqlFactory;
  * preprocessors are only called once
  * command-line bootstrap.
  */
-$this->package('cradlephp/cradle-profile')
+$this->package('cradlephp/cradle-website')
 
 /**
  * Performs an install

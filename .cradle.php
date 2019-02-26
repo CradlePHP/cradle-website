@@ -1,5 +1,6 @@
 <?php //-->
 require_once __DIR__ . '/package/events.php';
+require_once __DIR__ . '/package/helpers.php';
 require_once __DIR__ . '/src/events.php';
 require_once __DIR__ . '/src/controller/page.php';
 require_once __DIR__ . '/src/controller/post.php';
