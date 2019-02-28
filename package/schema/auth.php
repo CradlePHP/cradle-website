@@ -199,19 +199,6 @@ return array (
       array (
         'type' => 'text',
       ),
-      'validation' => 
-      array (
-        0 => 
-        array (
-          'method' => 'one',
-          'parameters' => 
-          array (
-            0 => '0',
-            1 => '1',
-          ),
-          'message' => 'Should be 0 or 1',
-        ),
-      ),
       'list' => 
       array (
         'format' => 'none',

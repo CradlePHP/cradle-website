@@ -126,6 +126,6 @@ cradle(function() {
     $schemas = array_merge($schemas, $processed);
 
     $response
-        ->setResults('logs', '/module/website', '0.0.1', $logs)
+        ->setResults('logs', 'cradlephp/cradle-website', '0.0.1', $logs)
         ->setResults('schemas', $schemas);
 });
