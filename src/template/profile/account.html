@@ -30,24 +30,37 @@
             {{> profile_menu}}
         </div>
         <div class="col-md-9">
-            {{#format 'field' 'auth' item}}
-                {{#each formats}}
-                    {{#notin 'auth_type' @key}}
-                        {{> profile_fieldset}}
-                    {{/notin}}
-                    {{#when @key '===' 'auth_password'}}
-                        <div class="form-group mt-2">
-                            <label class="control-label">{{_ 'Confirm'}}</label>
-                            <div class="form-password system-form-field" data-name="auth_password">
-                                <input autocomplete="confirm" class="form-control system-form-control" name="confirm" type="password" placeholder="Confirm password" />
+            <form method="post">
+                {{#format 'field' 'auth' item}}
+                    {{#each formats}}
+                        {{#notin 'auth_type' @key}}
+                            {{> profile_fieldset}}
+                        {{/notin}}
+                        {{#when @key '===' 'auth_password'}}
+                            <div class="form-group mt-2 
+                                {{#response 'json'}}
+                                   {{#if validation.confirm}}has-error{{/if}}
+                                {{/response}}"
+                            >
+                                <label class="control-label">{{_ 'Confirm'}}</label>
+                                <div class="form-password system-form-field" data-name="auth_password">
+                                    <input autocomplete="confirm" class="form-control system-form-control" name="confirm" type="password" placeholder="Confirm password" />
+                                </div>
+
+                                {{#response 'json'}}
+                                    {{#if validation.confirm}}
+                                        <span class="help-text">{{validation.confirm}}</span>
+                                    {{/if}}
+                                {{/response}}
                             </div>
-                        </div>
-                    {{/when}}
-                {{/each}}
-            {{/format}}
-            <div class="form-group mt-2">
-                <button class="btn btn-primary">{{_ 'Submit'}}</button>
-            </div>
+                        {{/when}}
+                    {{/each}}
+                {{/format}}
+                <div class="form-group mt-2">
+                    <input type="hidden" name="csrf" value="{{csrf}}" />
+                    <button class="btn btn-primary">{{_ 'Submit'}}</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
