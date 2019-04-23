@@ -34,16 +34,19 @@
             {{> profile_menu}}
         </div>
         <div class="col-md-9">
-            {{#format 'field' 'profile' item}}
-                {{#each formats}}
-                    {{#notin 'profile_image' @key}}
-                        {{> profile_fieldset}}
-                    {{/notin}}
-                {{/each}}
-            {{/format}}
-            <div class="form-group mt-2">
-                <button class="btn btn-primary">{{_ 'Submit'}}</button>
-            </div>
+            <form method="post">
+                {{#format 'field' 'profile' item}}
+                    {{#each formats}}
+                        {{#notin 'profile_image' @key}}
+                            {{> profile_fieldset}}
+                        {{/notin}}
+                    {{/each}}
+                {{/format}}
+                <div class="form-group mt-2">
+                    <input type="hidden" name="csrf" value="{{csrf}}" />
+                    <button class="btn btn-primary">{{_ 'Submit'}}</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

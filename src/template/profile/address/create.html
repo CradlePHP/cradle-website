@@ -37,7 +37,7 @@
         </div>
         <div class="col-md-9">
             <form method="post">
-                {{#format 'field' 'address'}}
+                {{#format 'field' 'address' item}}
                     {{#each formats}}
                         {{#notin 'address_latitude,address_longitude' @key}}
                             {{> profile_fieldset}}

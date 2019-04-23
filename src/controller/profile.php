@@ -1,5 +1,7 @@
 <?php //-->
 
+use Cradle\Module\Utility\File;
+
 /**
  * Render Profile JS
  *
@@ -34,9 +36,39 @@ $this->get('/profile/update', function($request, $response) {
     // 2. Render Template
     //set the class name
     $class = 'page-profile-update page-profile';
+    //----------------------------//
+    // 3. Prepare Data
+    //Prepare body
+    $data = ['item' => $request->getPost()];
 
     //determine the title
     $data['title'] = $global->translate('Update Profile');
+
+    // add CDN
+    $config = $this->package('global')->service('s3-main');
+    $data['cdn_config'] = File::getS3Client($config);
+
+    //add CSRF
+    $this->trigger('csrf-load', $request, $response);
+    $data['csrf'] = $response->getResults('csrf');
+
+    //If no post
+    if (!$request->hasPost('profile_name')) {
+        //set default data
+        $data['item'] = $request->getSession('me');
+    }
+
+    if ($response->isError()) {
+        $response->setFlash($response->getMessage(), 'error');
+        $data['errors'] = $response->getValidation();
+    }
+
+    //if there are file fields
+    if (!empty($data['schema']['files'])) {
+        //add CDN
+        $config = $this->package('global')->service('s3-main');
+        $data['cdn_config'] = File::getS3Client($config);
+    }
 
     $template = dirname(__DIR__) . '/template';
     if (is_dir($response->getPage('template_root'))) {
@@ -91,6 +123,25 @@ $this->get('/profile/account', function($request, $response) {
 
     //determine the title
     $data['title'] = $global->translate('Update Profile');
+    
+    // add CDN
+    $config = $this->package('global')->service('s3-main');
+    $data['cdn_config'] = File::getS3Client($config);
+
+    //add CSRF
+    $this->trigger('csrf-load', $request, $response);
+    $data['csrf'] = $response->getResults('csrf');
+
+    //If no post
+    if (!$request->hasPost('profile_name')) {
+        //set default data
+        $data['item'] = $request->getSession('me');
+    }
+
+    if ($response->isError()) {
+        $response->setFlash($response->getMessage(), 'error');
+        $data['errors'] = $response->getValidation();
+    }
 
     $template = dirname(__DIR__) . '/template';
     if (is_dir($response->getPage('template_root'))) {
@@ -100,6 +151,12 @@ $this->get('/profile/account', function($request, $response) {
     $partials = dirname(__DIR__) . '/template';
     if (is_dir($response->getPage('partials_root'))) {
         $partials = $response->getPage('partials_root');
+    }
+
+        //If no post
+    if (!$request->hasPost('profile_name')) {
+        //set default data
+        $data['item'] = $request->getSession('me');
     }
 
     //render the body
@@ -210,6 +267,7 @@ $this->get('/profile/address/create', function($request, $response) {
     //set the class name
     $class = 'page-profile-address-create page-profile';
 
+    $data = ['item' => $request->getPost()];
     //determine the title
     $data['title'] = $global->translate('Update Profile');
 
@@ -268,6 +326,16 @@ $this->get('/profile/address/update/:address_id', function($request, $response) 
     //determine the title
     $data['title'] = $global->translate('Update Profile');
 
+    $addressId = $request->getStage('address_id');
+
+    $request
+        ->setStage('schema', 'address')
+        ->setStage('address_id', $addressId);
+
+    $this->trigger('system-model-detail', $request, $response);
+
+    $data['item'] = $response->getResults();
+
     $template = dirname(__DIR__) . '/template';
     if (is_dir($response->getPage('template_root'))) {
         $template = $response->getPage('template_root');
@@ -304,4 +372,329 @@ $this->get('/profile/address/update/:address_id', function($request, $response) 
     }
 
     $this->trigger('www-render-page', $request, $response);
+});
+
+
+/**
+ * Render profile address create page
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$this->get('/profile/address/remove/:address_id', function($request, $response) {
+    $global = $this->package('global');
+
+    //----------------------------//
+    // 2. Render Template
+    $redirect = '/profile/address';
+    $request
+        ->setStage('schema', 'address')
+        ->setStage('address_id', $request->getStage('address_id'));
+
+    //----------------------------//
+    // 2. Process Request
+    $this->trigger('system-model-remove', $request, $response);
+
+    if ($response->isError()) {
+        //add a flash
+        $this->package('global')->flash($response->getMessage(), 'danger');
+        $this->package('global')->redirect($redirect);
+    } 
+       
+    //add a flash
+    $message = $this->package('global')->translate('Address was Removed');
+    $this->package('global')->flash($message, 'success');
+
+    $this->package('global')->redirect($redirect);
+});
+
+/**
+ * Process the Address Create Page
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$this->post('/profile/address/create', function ($request, $response) {
+    //----------------------------//
+    // 1. Setup Overrides
+    //determine route
+    $route = '/profile/address/create';
+    if ($request->hasStage('route')) {
+        $route = $request->getStage('route');
+    }
+
+    //determine redirect
+    $redirect = '/profile/address';
+
+    //----------------------------//
+    // 2. Security Checks
+    //need to be online
+    $this->package('global')->requireLogin();
+
+    if ($response->isError()) {
+        $response->setFlash($response->getMessage(), 'error');
+        $data['errors'] = $response->getValidation();
+    }
+
+    //csrf check
+    $this->trigger('csrf-validate', $request, $response);
+    if ($response->isError()) {
+        return $this->routeTo('get', $route, $request, $response);
+    }
+
+    //----------------------------//
+    // 3. Prepare Data
+    $errors =[];
+    $data = ['item' => $request->getPost()];
+
+    //set the address_id
+    $request->setStage('address', $request->getStage('address_id'));
+    $request->setStage('schema', 'address');
+    //----------------------------//
+    // 4. Process Request
+    //trigger the job
+    $this->trigger('system-model-create', $request, $response);
+    //----------------------------//
+    // 5. Interpret Results
+    if ($response->isError()) {
+        return $this->routeTo('get', $route, $request, $response);
+    }
+
+    //if we dont want to redirect
+    if ($redirect === 'false') {
+        return;
+    }
+
+    //add a flash
+    $message = $this->package('global')->translate('Address Added');
+    $this->package('global')->flash($message, 'success');
+
+    $this->package('global')->redirect($redirect);
+});
+/**
+ * Process the Account Page
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$this->post('/profile/address/update/:address_id', function ($request, $response) {
+    //----------------------------//
+    // 1. Setup Overrides
+    //determine route
+    $route = '/profile/address/update/'. $request->getStage('address_id');
+    if ($request->hasStage('route')) {
+        $route = $request->getStage('route');
+    }
+
+    //determine redirect
+    $redirect = '/profile/address/update/'. $request->getStage('address_id');
+
+    //----------------------------//
+    // 2. Security Checks
+    //need to be online
+    $this->package('global')->requireLogin();
+
+    //csrf check
+    $this->trigger('csrf-validate', $request, $response);
+    if ($response->isError()) {
+        return $this->routeTo('get', $route, $request, $response);
+    }
+
+    //----------------------------//
+    // 3. Prepare Data
+    $errors =[];
+    $data = ['item' => $request->getPost()];
+
+    //set the address_id
+    $request->setStage('address', $request->getStage('address_id'));
+    $request->setStage('schema', 'address');
+    //----------------------------//
+    // 4. Process Request
+    //trigger the job
+    $this->trigger('system-model-update', $request, $response);
+    //----------------------------//
+    // 5. Interpret Results
+    if ($response->isError()) {
+        return $this->routeTo('get', $route, $request, $response);
+    }
+
+    //if we dont want to redirect
+    if ($redirect === 'false') {
+        return;
+    }
+
+    //add a flash
+    $message = $this->package('global')->translate('Update Successful');
+    $this->package('global')->flash($message, 'success');
+
+    $this->package('global')->redirect($redirect);
+});
+
+/**
+ * Process the Account Page
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$this->post('/profile/account', function ($request, $response) {
+    //----------------------------//
+    // 1. Setup Overrides
+    //determine route
+    $route = '/profile/account';
+    if ($request->hasStage('route')) {
+        $route = $request->getStage('route');
+    }
+
+    //determine redirect
+    $redirect = '/profile/account';
+
+    //----------------------------//
+    // 2. Security Checks
+    //need to be online
+    $this->package('global')->requireLogin();
+
+    //csrf check
+    $this->trigger('csrf-validate', $request, $response);
+    if ($response->isError()) {
+        return $this->routeTo('get', $route, $request, $response);
+    }
+
+    //----------------------------//
+    // 3. Prepare Data
+    $errors =[];
+    $data = ['item' => $request->getPost()];
+    if (isset($data['item']['auth_password']) && empty($data['item']['auth_password'])) {
+        $errors['auth_password'] = 'Cannot be empty';
+    }
+
+    if (isset($data['item']['confirm']) && empty($data['item']['confirm'])) {
+        $errors['confirm'] = 'Cannot be empty';
+    }
+
+    //confirm
+    if ((
+        !empty($data['item']['auth_password']) || !empty($data['item']['confirm'])
+        )
+        && $data['item']['confirm'] !== $data['item']['auth_password']
+    ) {
+        $errors['confirm'] = 'Passwords do not match';
+    }
+
+    if ($errors) {
+        $response->setError(true, 'Invalid Parameters');
+        $response->set('json', 'validation', $errors);
+        return $this->routeTo('get', $route, $request, $response);
+    }
+    
+    //set the auth_id and profile_id
+    $request->setStage('auth_id', $request->getSession('me', 'auth_id'));
+    $request->setStage('schema', 'auth');
+    //----------------------------//
+    // 4. Process Request
+    //trigger the job
+    $this->trigger('system-model-update', $request, $response);
+    //----------------------------//
+    // 5. Interpret Results
+    if ($response->isError()) {
+        return $this->routeTo('get', $route, $request, $response);
+    }
+
+    //setup a new RnR
+    $payload = $this->makePayload();
+
+    //it was good
+    //update the session
+    $payload['request']->setStage('auth_id', $request->getSession('me', 'auth_id'));
+    $payload['request']->setStage('schema', 'auth');
+    $this->trigger(
+        'system-model-detail', 
+        $payload['request'], 
+        $payload['response']
+    );
+
+    //update session me
+    $request->setSession('me', $payload['response']->getResults());
+
+    //if we dont want to redirect
+    if ($redirect === 'false') {
+        return;
+    }
+
+    //add a flash
+    $message = $this->package('global')->translate('Update Successful');
+    $this->package('global')->flash($message, 'success');
+
+    $this->package('global')->redirect($redirect);
+});
+
+/**
+ * Process the Profile Update Page
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$this->post('/profile/update', function ($request, $response) {
+    //----------------------------//
+    // 1. Setup Overrides
+    //determine route
+    $route = '/profile/update';
+    if ($request->hasStage('route')) {
+        $route = $request->getStage('route');
+    }
+
+    //determine redirect
+    $redirect = '/profile/update';
+
+    //----------------------------//
+    // 2. Security Checks
+    //need to be online
+    $this->package('global')->requireLogin();
+
+    //csrf check
+    $this->trigger('csrf-validate', $request, $response);
+    if ($response->isError()) {
+        return $this->routeTo('get', $route, $request, $response);
+    }
+
+    //----------------------------//
+    // 3. Prepare Data
+    //set the auth_id and profile_id
+    $request->setStage('profile_id', $request->getSession('me', 'profile_id'));
+    $request->setStage('schema', 'profile');
+
+    //----------------------------//
+    // 4. Process Request
+    //trigger the job
+    $this->trigger('system-model-update', $request, $response);
+    //----------------------------//
+    // 5. Interpret Results
+    if ($response->isError()) {
+        return $this->routeTo('get', $route, $request, $response);
+    }
+
+    //setup a new RnR
+    $payload = $this->makePayload();
+
+    //it was good
+    //update the session
+    $payload['request']->setStage('auth_id', $request->getSession('me', 'auth_id'));
+    $payload['request']->setStage('schema', 'auth');
+    $this->trigger(
+        'system-model-detail', 
+        $payload['request'], 
+        $payload['response']
+    );
+    //update session me
+    $request->setSession('me', $payload['response']->getResults());
+
+    //if we dont want to redirect
+    if ($redirect === 'false') {
+        return;
+    }
+
+    //add a flash
+    $message = $this->package('global')->translate('Update Successful');
+    $this->package('global')->flash($message, 'success');
+
+    $this->package('global')->redirect($redirect);
 });
