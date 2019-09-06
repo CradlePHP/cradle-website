@@ -539,5 +539,82 @@ $this->on('cradlephp-cradle-website-sql-flush', function ($request, $response) {
  * @param Response $response
  */
 $this->on('cradlephp-cradle-website-sql-populate', function ($request, $response) {
-    
+  //load up the database
+  $pdo = $this->package('global')->service('sql-main');
+  //Storm ORM
+  $database = SqlFactory::load($pdo);
+
+  //setting up combining variables
+  $combineFlag = 0;
+  $combinedQuery = "";
+
+  //Going through each file in fixtures
+  foreach (scandir(__DIR__ . '/fixtures') as $file) {
+    //if it's not an sql file
+    if(substr($file, -4) !== '.sql') {
+        //skip
+        continue;
+    }
+    //put all lines of the file into an array
+    $sql = file(sprintf('%s/fixtures/%s', __DIR__, $file), FILE_IGNORE_NEW_LINES);
+
+    //to check for the final iteration for the array
+    $len = count($sql);
+
+    //working on every line that was read. i is used as a key. query is used as the value
+    foreach($sql as $i=>$query) {
+      //skips everything that is either empty or contains a comment
+      if ($query == "" || preg_match_all("/(^--.*)/m", $query)) {
+        $combineFlag = 0;
+        //if combinedQuery is not empty, work on it. Empty after. If it is, don't work on it.
+        if ($combinedQuery != ""){
+          //combinedQuery is not empty means that it just finished combining.
+          try {
+            $test = $database->query($combinedQuery);
+          } catch (\Exception $e){
+            continue;
+          }
+
+          $combinedQuery = "";
+        }
+        continue;
+      } else if ($query != "" && $combineFlag == 1) {
+        $combinedQuery = $combinedQuery . " " . $query;
+        if ($i == $len - 1){
+          //last combinedQuery in the file gets worked on here. This is the very last line if it's combined.
+          try {
+            $test = $database->query($combinedQuery);
+          } catch (\Exception $e){
+            continue;
+          }
+        }
+        continue;
+      }
+
+      if (preg_match_all("/(.*);/m", $query)) {
+        if ($combineFlag == 1){ //it's the end of the query since we see ; Time to execute
+          try {
+           $test = $database->query($combinedQuery);
+           $combineFlag = 0;
+         } catch (\Exception $e){
+           continue;
+         }
+       } else { //It's already complete even without the combine.
+          try {
+           $test = $database->query($query);
+         } catch (\Exception $e){
+           continue;
+         }
+       }
+     } else { //we have to combine since we don't see a ;
+       $combineFlag = 1; //becomes true to combine
+       $combinedQuery = $query; //make it the start
+       continue;
+     }
+
+    }
+    //reset values for the next
+    $combineFlag = 0;
+    $combinedQuery = "";
+  }
 });
